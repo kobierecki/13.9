@@ -1,16 +1,27 @@
-var fs = require('fs');
-var formidable = require('formidable');
+const fs = require('fs');
+const formidable = require('formidable');
+const crypto = require("crypto");
+const colors = require('colors');
+
+var id = crypto.randomBytes(4).toString("hex");
+var files = [];
+
+function addToFiles(placeholder){
+    files.push(id);
+    return files[placeholder];
+}
+
 
 exports.upload = function(request, response){
     console.log("Rozpoczynam obsługę żadania upload");
     var form = new formidable.IncomingForm();
     form.parse(request, function(error, fields, files){
-        console.log(colors.magenta(JSON.stringify(files.upload.name)));
-        fs.renameSync(files.upload.path, "test.png");
+        fs.renameSync(files.upload.path, addToFiles(0));
         console.log('etap 2');
         response.writeHead(200, {"Content-Type": "text/html"});
         response.write("received image:<br/>");
         response.write("<img src='/show' />");
+        response.write("<button id='return-button'>return</button>");
         response.end();
     })
 }
@@ -25,7 +36,7 @@ exports.welcome = function(request, response){
 }
 
 exports.show = function(request, response) {
-    fs.readFile("test.png", "binary", function(error, file) {
+    fs.readFile(files[0], "binary", function(error, file) {
         response.writeHead(200, {"Content-Type": "image/png"});
         response.write(file, "binary");
         response.end();
